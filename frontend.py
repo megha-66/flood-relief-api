@@ -9,12 +9,549 @@ from dotenv import load_dotenv
 # ============================================================
 load_dotenv()
 
-API_URL = os.getenv("API_URL","http://127.0.0.1:8000")
+API_URL = "http://127.0.0.1:8000"
 
 
 # ============================================================
 # Authentication / Session Helpers
 # ============================================================
+
+def relief_background():
+    ui.add_head_html("""
+    <style>
+        /* =========================================================
+           FLOOD RELIEF BACKGROUND
+           ========================================================= */
+
+        html,
+        body {
+            margin: 0;
+            min-height: 100%;
+            background: #071c2b !important;
+        }
+
+        body {
+            overflow-x: hidden;
+        }
+
+        /* NiceGUI root/content must sit ABOVE the background */
+        .nicegui-content {
+            position: relative;
+            z-index: 1;
+            background: transparent !important;
+        }
+
+        .q-page {
+            background: transparent !important;
+        }
+
+
+        /* =========================================================
+           BACKGROUND
+           ========================================================= */
+
+        #relief-background {
+            position: fixed;
+            inset: 0;
+
+            width: 100vw;
+            height: 100vh;
+
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+
+            background:
+                radial-gradient(
+                    circle at 15% 10%,
+                    rgba(54, 190, 190, 0.22),
+                    transparent 30%
+                ),
+                radial-gradient(
+                    circle at 85% 20%,
+                    rgba(58, 125, 190, 0.22),
+                    transparent 30%
+                ),
+                radial-gradient(
+                    circle at 50% 100%,
+                    rgba(255, 190, 110, 0.13),
+                    transparent 40%
+                ),
+                linear-gradient(
+                    145deg,
+                    #061522 0%,
+                    #082b3d 48%,
+                    #0b5364 100%
+                );
+        }
+
+
+        /* =========================================================
+           ATMOSPHERIC GLOW
+           ========================================================= */
+
+        .relief-glow {
+            position: absolute;
+
+            width: 700px;
+            height: 700px;
+
+            border-radius: 50%;
+
+            background:
+                radial-gradient(
+                    circle,
+                    rgba(82, 220, 207, 0.28) 0%,
+                    rgba(82, 220, 207, 0.12) 35%,
+                    transparent 70%
+                );
+
+            filter: blur(35px);
+
+            animation: glowFloat 16s ease-in-out infinite alternate;
+        }
+
+        .relief-glow.one {
+            top: -250px;
+            left: -180px;
+        }
+
+        .relief-glow.two {
+            top: 80px;
+            right: -280px;
+
+            animation-delay: -6s;
+
+            background:
+                radial-gradient(
+                    circle,
+                    rgba(85, 155, 230, 0.25) 0%,
+                    rgba(85, 155, 230, 0.10) 40%,
+                    transparent 70%
+                );
+        }
+
+        @keyframes glowFloat {
+            0% {
+                transform: translate(0, 0) scale(1);
+            }
+
+            100% {
+                transform: translate(70px, 50px) scale(1.12);
+            }
+        }
+
+
+        /* =========================================================
+           RAIN
+           ========================================================= */
+
+        .rain {
+            position: absolute;
+            inset: 0;
+
+            z-index: 5;
+
+            overflow: hidden;
+
+            opacity: 1;
+        }
+
+        .raindrop {
+            position: absolute;
+
+            top: -100px;
+
+            width: 2px;
+            height: 65px;
+
+            border-radius: 50%;
+
+            background: linear-gradient(
+                to bottom,
+                rgba(255,255,255,0),
+                rgba(210,245,255,0.9)
+            );
+
+            box-shadow:
+                0 0 4px rgba(180,230,255,0.35);
+
+            animation-name: rainfall;
+            animation-timing-function: linear;
+            animation-iteration-count: infinite;
+        }
+
+        @keyframes rainfall {
+            0% {
+                transform: translate3d(0, -100px, 0);
+            }
+
+            100% {
+                transform: translate3d(-90px, 115vh, 0);
+            }
+        }
+
+
+/* =========================================================
+   WATER
+   ========================================================= */
+
+.water {
+    position: absolute;
+
+    left: -10%;
+    bottom: 0;
+
+    width: 120%;
+    height: 35%;
+
+    z-index: 10;
+
+    overflow: hidden;
+
+    background:
+        linear-gradient(
+            to top,
+            rgba(2, 19, 32, 0.95),
+            rgba(5, 48, 67, 0.75),
+            rgba(8, 65, 82, 0.20)
+        );
+}
+
+
+/* =========================================================
+   LARGE VISIBLE WAVES
+   ========================================================= */
+
+.wave {
+    position: absolute;
+
+    left: -25%;
+
+    width: 150%;
+    height: 100px;
+
+    border-radius: 50%;
+
+    /* Much more visible than the previous 0.14 */
+    border-top: 4px solid rgba(190, 240, 245, 0.35);
+
+    background:
+        rgba(80, 190, 200, 0.06);
+
+    box-shadow:
+        0 -8px 25px rgba(90, 210, 220, 0.16),
+        inset 0 10px 20px rgba(255, 255, 255, 0.05);
+
+    animation:
+        waterWave 6s linear infinite ;
+}
+
+
+/* First wave */
+.wave:nth-child(1) {
+    bottom: 72%;
+
+    height: 90px;
+
+    opacity: 1;
+
+    animation-duration: 7s;
+}
+
+
+/* Second wave */
+.wave:nth-child(2) {
+    bottom: 45%;
+
+    height: 110px;
+
+    opacity: 0.8;
+
+    animation-duration: 9s;
+    animation-delay: -3s;
+}
+
+
+/* Third wave */
+.wave:nth-child(3) {
+    bottom: 18%;
+
+    height: 130px;
+
+    opacity: 0.65;
+
+    animation-duration: 11s;
+    animation-delay: -6s;
+}
+
+
+/* =========================================================
+   WAVE ANIMATION
+   ========================================================= */
+
+@keyframes waterWave {
+
+      0% {
+        transform:
+            translateX(-12%)
+            scaleY(1);
+    }
+
+    25% {
+        transform:
+            translateX(-4%)
+            scaleY(1.06);
+    }
+
+    50% {
+        transform:
+            translateX(4%)
+            scaleY(0.96);
+    }
+
+    75% {
+        transform:
+            translateX(10%)
+            scaleY(1.05);
+    }
+
+    100% {
+        transform:
+            translateX(18%)
+            scaleY(1);
+    }
+}
+
+/* =========================================================
+   WATER SHIMMER
+   ========================================================= */
+
+.water-shine {
+    position: absolute;
+
+    height: 2px;
+
+    border-radius: 50%;
+
+    background:
+        linear-gradient(
+            90deg,
+            transparent,
+            rgba(210, 250, 250, 0.55),
+            transparent
+        );
+
+    filter: blur(0.5px);
+
+    animation:
+        shineFlow 5s linear infinite;
+}
+
+
+.shine-1 {
+    width: 180px;
+    left: 10%;
+    bottom: 35%;
+
+    animation-duration: 5s;
+}
+
+
+.shine-2 {
+    width: 260px;
+    left: 45%;
+    bottom: 55%;
+
+    opacity: 0.7;
+
+    animation-duration: 7s;
+    animation-delay: -2s;
+}
+
+
+.shine-3 {
+    width: 140px;
+    left: 75%;
+    bottom: 25%;
+
+    opacity: 0.55;
+
+    animation-duration: 6s;
+    animation-delay: -4s;
+}
+
+
+@keyframes shineFlow {
+
+    0% {
+        transform: translateX(-180px);
+        opacity: 0;
+    }
+
+    20% {
+        opacity: 0.7;
+    }
+
+    80% {
+        opacity: 0.7;
+    }
+
+    100% {
+        transform: translateX(500px);
+        opacity: 0;
+    }
+}
+
+
+        /* =========================================================
+           GLASSMORPHISM CARDS
+           ========================================================= */
+
+        .relief-card {
+            position: relative !important;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    rgba(255,255,255,0.14),
+                    rgba(255,255,255,0.055)
+                ) !important;
+
+            border:
+                1px solid rgba(255,255,255,0.20) !important;
+
+            border-radius: 20px !important;
+
+            box-shadow:
+                0 10px 35px rgba(0,0,0,0.25),
+                inset 0 1px 0 rgba(255,255,255,0.12) !important;
+
+            backdrop-filter: blur(18px) saturate(130%) !important;
+            -webkit-backdrop-filter: blur(18px) saturate(130%) !important;
+
+            overflow: hidden !important;
+        }
+
+        /* Glass highlight */
+        .relief-card::before {
+            content: "";
+
+            position: absolute;
+            inset: 0;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    rgba(255,255,255,0.10),
+                    transparent 40%
+                );
+
+            pointer-events: none;
+        }
+
+        /* Make card contents stay above highlight */
+        .relief-card > * {
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Nice hover effect */
+        .relief-card {
+            transition:
+                transform 0.25s ease,
+                box-shadow 0.25s ease,
+                border-color 0.25s ease;
+        }
+
+        .relief-card:hover {
+            transform: translateY(-3px);
+
+            border-color:
+                rgba(255,255,255,0.32) !important;
+
+            box-shadow:
+                0 16px 45px rgba(0,0,0,0.30),
+                inset 0 1px 0 rgba(255,255,255,0.16) !important;
+        }
+
+
+        /* =========================================================
+           REDUCED MOTION
+           ========================================================= */
+
+        @media (prefers-reduced-motion: reduce) {
+            .relief-glow,
+            .raindrop,
+            .wave,
+            .relief-card {
+                animation: none !important;
+                transition: none !important;
+            }
+        }
+    </style>
+
+    <div id="relief-background">
+
+        <div class="relief-glow one"></div>
+        <div class="relief-glow two"></div>
+
+        <div class="rain" id="relief-rain"></div>
+
+        <div class="water">
+            <div class="wave"></div>
+            <div class="wave"></div>
+            <div class="wave"></div>
+            
+             <div class="water-shine shine-1"></div>
+    <div class="water-shine shine-2"></div>
+    <div class="water-shine shine-3"></div>
+
+        </div> </div>
+
+    <script>
+        const rain = document.getElementById("relief-rain");
+
+        // More drops = more visible rain
+        const dropCount = 90;
+
+        for (let i = 0; i < dropCount; i++) {
+
+            const drop = document.createElement("span");
+
+            drop.className = "raindrop";
+
+            drop.style.left =
+                Math.random() * 110 + "%";
+
+            drop.style.height =
+                (35 + Math.random() * 50) + "px";
+
+            drop.style.width =
+                (1 + Math.random() * 1.5) + "px";
+
+            drop.style.opacity =
+                (0.35 + Math.random() * 0.55).toFixed(2);
+
+            drop.style.animationDuration =
+                (0.7 + Math.random() * 1.5).toFixed(2) + "s";
+
+            drop.style.animationDelay =
+                (-Math.random() * 3).toFixed(2) + "s";
+
+            rain.appendChild(drop);
+        }
+    </script>
+    """)
+
+
+
+# =============================================================
+# YOUR NICEGUI APP
+# =============================================================
+
+relief_background()
+
 
 def get_token():
     return app.storage.user.get("access_token")
@@ -567,7 +1104,7 @@ def coordinator_section():
             ui.label(
                 "Login as CAMP_COORDINATOR to create "
                 "relief camps and inventory requirements."
-            ).classes("text-grey-7")
+            ).classes("black-7")
 
         return
 
@@ -780,6 +1317,7 @@ def add_inventory_from_values(
 with ui.header().classes(
     "items-center justify-between"
 ):
+    
 
     ui.label(
         "Flood Relief Resource & Donation Tracker"
@@ -901,7 +1439,7 @@ with ui.card().classes(
 
     ui.label(
         "Select a resource from the current inventory requirements."
-    ).classes("text-grey-7")
+    ).classes("text-red-7")
 
     # --------------------------------------------------------
     # Get Inventory
@@ -1015,7 +1553,7 @@ with ui.card().classes(
 # ============================================================
 
 ui.run(
-    title="Flood Relief Resource Tracker",
+    title="Flood Relief Tracker",
     port=int(os.getenv("PORT", 8080)),
     storage_secret=os.getenv(
         "STORAGE_SECRET",
