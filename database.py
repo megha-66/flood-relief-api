@@ -39,15 +39,16 @@ class User(Base):
 class ReliefCamp(Base):
     __tablename__ = "relief_camps"
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, nullable=False)
+    name = Column(String,unique=True, nullable=False)
     district = Column(String, nullable=False)
     contact_person = Column(String, nullable=False)
+    contact_number = Column(String, nullable=False)
     inventories = relationship("ResourceInventory", back_populates="camp")
 
 class ResourceInventory(Base):
     __tablename__ = "resource_inventories"
     id = Column(Integer, primary_key=True, index=True)
-    camp_id = Column(Integer, ForeignKey("relief_camps.id"))
+    camp_name = Column(String, ForeignKey("relief_camps.name"))
     item_name = Column(String, nullable=False)
     unit = Column(String, nullable=False)
     required_quantity = Column(Integer, nullable=False)

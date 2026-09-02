@@ -37,9 +37,10 @@ class CampCreate(BaseModel):
     name: str
     district: str
     contact_person: str
+    contact_number: str
 
 class InventoryCreate(BaseModel):
-    camp_id: int
+    camp_name: str  #i want it to change this to camp name, id is forgetful!
     item_name: str
     unit: str
     required_quantity: int
@@ -135,8 +136,7 @@ def get_inventory(db: Session = Depends(get_db)):
 
     return [
         {
-            "id": item.id,
-            "camp_id": item.camp_id,
+            "id": item.id,  #camp_id removed,
             "item_name": item.item_name,
             "unit": item.unit,
             "required_quantity": item.required_quantity,

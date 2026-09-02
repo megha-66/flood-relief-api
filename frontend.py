@@ -1131,13 +1131,18 @@ def coordinator_section():
         camp_contact = ui.input(
             "Contact Person"
         ).classes("w-full")
+        
+        camp_contactnum = ui.input(
+            "Contact Number"
+        ).classes("w-full")
 
         ui.button(
             "Create Camp",
             on_click=lambda: create_camp_from_values(
                 camp_name,
                 camp_district,
-                camp_contact
+                camp_contact,
+                camp_contactnum
             ),
             icon="add_location"
         )
@@ -1154,10 +1159,8 @@ def coordinator_section():
             "Add Resource Requirement"
         ).classes("text-h5")
 
-        inventory_camp_id = ui.number(
-            "Camp ID",
-            min=1,
-            precision=0
+        inventory_camp_name = ui.input(
+            "Camp Name",
         ).classes("w-full")
 
         inventory_item_name = ui.input(
@@ -1178,7 +1181,7 @@ def coordinator_section():
         ui.button(
             "Add Inventory Requirement",
             on_click=lambda: add_inventory_from_values(
-                inventory_camp_id,
+                inventory_camp_name,
                 inventory_item_name,
                 inventory_unit,
                 inventory_required_quantity
@@ -1194,7 +1197,8 @@ def coordinator_section():
 def create_camp_from_values(
     name_field,
     district_field,
-    contact_field
+    contact_field,
+    contact_number
 ):
 
     if not get_token():
@@ -1207,7 +1211,8 @@ def create_camp_from_values(
     payload = {
         "name": name_field.value.strip(),
         "district": district_field.value.strip(),
-        "contact_person": contact_field.value.strip()
+        "contact_person": contact_field.value.strip(),
+        "contact_number": contact_number.value.strip(),
     }
 
     if not all(payload.values()):
@@ -1232,6 +1237,7 @@ def create_camp_from_values(
             name_field.value = ""
             district_field.value = ""
             contact_field.value = ""
+            contact_number.value = ""
 
     except requests.exceptions.RequestException as e:
 
@@ -1242,7 +1248,7 @@ def create_camp_from_values(
 
 
 def add_inventory_from_values(
-    camp_id_field,
+    camp_name_field,
     item_name_field,
     unit_field,
     quantity_field
@@ -1256,7 +1262,7 @@ def add_inventory_from_values(
         return
 
     try:
-        camp_id = int(camp_id_field.value)
+        camp_name = camp_name_field.value.strip()
         quantity = int(quantity_field.value)
 
     except (TypeError, ValueError):
@@ -1279,7 +1285,7 @@ def add_inventory_from_values(
         return
 
     payload = {
-        "camp_id": camp_id,
+        "camp_name": camp_name,
         "item_name": item_name,
         "unit": unit,
         "required_quantity": quantity
@@ -1300,7 +1306,7 @@ def add_inventory_from_values(
 
             item_name_field.value = ""
             unit_field.value = ""
-            quantity_field.value = ""
+            quantity_field.value = 0
 
     except requests.exceptions.RequestException as e:
 
